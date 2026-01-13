@@ -1,0 +1,49 @@
+version: '3.8'
+
+# Development environment - extends production docker-compose.yml
+# Usage: docker-compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up
+
+services:
+  redirect:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    container_name: redirect-service-dev
+    environment:
+      # Override NODE_ENV for development
+      - NODE_ENV=development
+
+      # Enable detailed logging
+      - DEBUG=*
+      - LOG_LEVEL=debug
+    volumes:
+      # Mount source code for live editing (hot reload with nodemon)
+      - ../src:/app/src
+      - ../scripts:/app/scripts
+      - ../sql:/app/sql
+
+      # Configuration files
+      - ../config/sites.json:/app/config/sites.json
+      - ../config/utm-sources.json:/app/config/utm-sources.json
+
+      # Logs
+      - ../logs:/app/logs
+
+      # node_modules should NOT be mounted (use container's version)
+      - /app/node_modules
+    command: ["npm", "run", "dev"]
+    ports:
+      # Expose debugging port
+      - "${PORT:-3077}:3077"
+      - "9229:9229"
+    stdin_open: true
+    tty: true
+
+  db:
+    container_name: redirect-db-dev
+    ports:
+      # Expose database port for local development tools
+      - "3306:3306"
+    environment:
+      # Less strict settings for development
+      - MYSQL_INITDB_SKIP_TZINFO=1

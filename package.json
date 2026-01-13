@@ -1,0 +1,51 @@
+{
+  "name": "universal-redirect-service",
+  "version": "1.0.0",
+  "description": "Universal UTM redirect service with OG preview, GeoIP tracking and n8n integration",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "install-wizard": "node scripts/setup-wizard.js",
+    "migrate": "bash scripts/migrate.sh migrate",
+    "migrate:status": "bash scripts/migrate.sh status",
+    "migrate:rollback": "bash scripts/migrate.sh rollback",
+    "check-requirements": "node scripts/check-requirements.js"
+  },
+  "keywords": [
+    "redirect",
+    "utm",
+    "tracking",
+    "og-preview",
+    "geoip",
+    "n8n",
+    "wordpress",
+    "universal"
+  ],
+  "author": "Genzo AI LLP",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genzoai/redirect-service.git"
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "geoip-lite": "^1.4.10",
+    "cheerio": "^1.0.0-rc.12",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "inquirer": "^9.2.0",
+    "commander": "^11.0.0",
+    "chalk": "^5.3.0"
+  }
+}

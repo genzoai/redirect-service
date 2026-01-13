@@ -1,0 +1,18 @@
+[Unit]
+Description=Monthly GeoIP Database Update Timer
+Requires=geoip-update.service
+
+[Timer]
+# Запускать 1-го числа каждого месяца в 03:00
+OnCalendar=monthly
+# Конкретное время: 3:00 ночи
+OnCalendar=*-*-01 03:00:00
+
+# Если пропустили запуск (сервер был выключен), запустить при следующем включении
+Persistent=true
+
+# Запустить через 5 минут после загрузки системы (первый раз)
+OnBootSec=5min
+
+[Install]
+WantedBy=timers.target

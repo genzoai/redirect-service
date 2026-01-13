@@ -1,0 +1,41 @@
+# Universal Redirect Service - Development Dockerfile
+# Node.js 18 LTS on Alpine Linux
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    bash \
+    && rm -rf /var/cache/apk/*
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies (including dev dependencies for nodemon)
+RUN npm install && npm cache clean --force
+
+# Copy application source code
+# Note: In dev mode, src/ will be mounted as a volume for live editing
+COPY src/ ./src/
+COPY scripts/ ./scripts/
+COPY sql/ ./sql/
+
+# Create necessary directories
+RUN mkdir -p logs config
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+# Default command (will be overridden by docker-compose.dev.yml)
+CMD ["npm", "run", "dev"]
+
+# Expose the application port and debugging port
+EXPOSE 3002 9229
+
+# Labels for metadata
+LABEL maintainer="Genzo AI LLP"
+LABEL version="1.0.0-dev"
+LABEL description="Universal Redirect Service - Development Environment"

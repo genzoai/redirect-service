@@ -1,0 +1,21 @@
+[Unit]
+Description=Redirect Service - UTM tracking and OG preview
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/redirect
+ExecStart=/usr/bin/node /opt/redirect/redirect-server.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=redirect-service
+
+# Переменные окружения
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

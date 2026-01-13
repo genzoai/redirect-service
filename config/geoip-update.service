@@ -1,0 +1,17 @@
+[Unit]
+Description=GeoIP Database Update for Redirect Service
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/redirect/scripts/update-geoip.sh
+User=root
+StandardOutput=journal
+StandardError=journal
+
+# Настройки безопасности
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

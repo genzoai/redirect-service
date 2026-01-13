@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # Node.js Redirect Service
+  redirect:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: redirect-service
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3077}:3077"
+    environment:
+      # Server configuration
+      - NODE_ENV=production
+      - PORT=3077
+
+      # Main database (for clicks logging)
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+
+      # WordPress database (optional - if using og_method: wordpress_db)
+      - WP_DB_HOST=${WP_DB_HOST:-}
+      - WP_DB_PORT=${WP_DB_PORT:-3306}
+      - WP_DB_USER=${WP_DB_USER:-}
+      - WP_DB_PASSWORD=${WP_DB_PASSWORD:-}
+
+      # API authentication
+      - API_BEARER_TOKEN=${API_BEARER_TOKEN}
+
+      # GeoIP settings
+      - GEOIP_ENABLED=${GEOIP_ENABLED:-true}
+    volumes:
+      # Configuration files (must be created before running)
+      - ../config/sites.json:/app/config/sites.json:ro
+      - ../config/utm-sources.json:/app/config/utm-sources.json:ro
+
+      # Logs directory (optional)
+      - ../logs:/app/logs
+    networks:
+      - redirect-network
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3077/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MariaDB Database (for clicks logging)
+  db:
+    image: mariadb:10.11
+    container_name: redirect-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      # Persistent database storage
+      - db-data:/var/lib/mysql
+
+      # SQL migrations (auto-run on first start)
+      - ../sql:/docker-entrypoint-initdb.d:ro
+    networks:
+      - redirect-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  # Persistent database storage
+  db-data:
+    driver: local
+
+networks:
+  redirect-network:
+    driver: bridge

@@ -1,0 +1,36 @@
+{
+  "realtruetales": {
+    "domain": "realtruetales.com",
+    "og_method": "wordpress_db",
+    "wp_db": "realtruetales_db",
+    "description": "WordPress site with direct DB access"
+  },
+  "rozpovediserdza": {
+    "domain": "rozpovediserdza.com",
+    "og_method": "wordpress_db",
+    "wp_db": "rozpovediserdza_db",
+    "description": "WordPress site with direct DB access"
+  },
+  "nathnenne": {
+    "domain": "nathnenne.com",
+    "og_method": "wordpress_db",
+    "wp_db": "wp_nathnenne",
+    "description": "WordPress site with direct DB access"
+  },
+  "radoscz": {
+    "domain": "radoscz.com",
+    "og_method": "wordpress_db",
+    "wp_db": "radoscz_db",
+    "description": "WordPress site with direct DB access"
+  },
+  "example_html": {
+    "domain": "example.com",
+    "og_method": "html_fetch",
+    "description": "Non-WordPress site - fetch OG tags from HTML"
+  },
+  "legacy_site": {
+    "domain": "legacy.com",
+    "db": "legacy_db",
+    "description": "Legacy config format (backward compatibility - og_method defaults to wordpress_db, db field supported)"
+  }
+}

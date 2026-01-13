@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Actual configs (examples stay, real configs ignored)
+config/sites.json
+config/utm-sources.json
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code (local config)
+.claude/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build
+dist/
+build/
+out/
+
+# Docker volumes
+data/
+db-data/
+
+# Backups
+*.backup
+backup-*/
+*.bak
+
+# Temporary files
+tmp/
+temp/
