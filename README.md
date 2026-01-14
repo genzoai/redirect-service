@@ -68,6 +68,7 @@ sudo bash scripts/install.sh
 Установщик настроит:
 - ✅ Проверку системных требований
 - ✅ Конфигурацию сайтов и источников трафика
+- ✅ URL шаблоны для сайтов (`url_pattern`)
 - ✅ База данных MySQL/MariaDB
 - ✅ SSL сертификат (Let's Encrypt)
 - ✅ Nginx reverse proxy
