@@ -76,6 +76,7 @@ openssl rand -base64 32
   "site_id": {
     "domain": "example.com",
     "og_method": "wordpress_db" | "html_fetch",
+    "url_pattern": "/{articleId}/",   // опционально
     "wp_db": "database_name",         // опционально
     "description": "Human description" // опционально
   }
@@ -93,6 +94,7 @@ openssl rand -base64 32
 
 | Поле | Тип | Используется в | Описание |
 |------|-----|----------------|----------|
+| `url_pattern` | string | Все | Шаблон URL для редиректа. Поддерживает `{articleId}`. По умолчанию: `/{articleId}/` |
 | `wp_db` | string | `wordpress_db` | Название WordPress БД |
 | `db` | string | Legacy | Старый формат (обратная совместимость) |
 | `description` | string | Все | Описание сайта для документации |
@@ -241,7 +243,62 @@ WP_DB_PASSWORD=password
 
 ---
 
-### Пример 3: Обратная совместимость (Legacy)
+### Пример 3: Кастомные URL схемы (url_pattern)
+
+**Стандартная схема** (по умолчанию):
+```json
+{
+  "blog": {
+    "domain": "example.com",
+    "og_method": "wordpress_db",
+    "wp_db": "example_db",
+    "url_pattern": "/{articleId}/"
+  }
+}
+```
+→ Результат: `https://example.com/article-slug/?utm_params`
+
+**Блог с префиксом:**
+```json
+{
+  "blog": {
+    "domain": "example.com",
+    "og_method": "html_fetch",
+    "url_pattern": "/blog/{articleId}/"
+  }
+}
+```
+→ Результат: `https://example.com/blog/article-slug/?utm_params`
+
+**Вложенная структура:**
+```json
+{
+  "news": {
+    "domain": "media.com",
+    "og_method": "html_fetch",
+    "url_pattern": "/news/articles/{articleId}/"
+  }
+}
+```
+→ Результат: `https://media.com/news/articles/article-slug/?utm_params`
+
+**Без слеша в конце:**
+```json
+{
+  "docs": {
+    "domain": "docs.example.com",
+    "og_method": "html_fetch",
+    "url_pattern": "/{articleId}"
+  }
+}
+```
+→ Результат: `https://docs.example.com/article-slug?utm_params`
+
+**Примечание:** `{articleId}` - обязательный плейсхолдер, который заменяется на slug статьи.
+
+---
+
+### Пример 4: Обратная совместимость (Legacy)
 
 **Старый формат** (всё ещё поддерживается):
 ```json

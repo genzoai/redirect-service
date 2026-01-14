@@ -3,30 +3,35 @@
     "domain": "realtruetales.com",
     "og_method": "wordpress_db",
     "wp_db": "realtruetales_db",
-    "description": "WordPress site with direct DB access"
+    "url_pattern": "/{articleId}/",
+    "description": "WordPress site with direct DB access (default URL pattern)"
   },
   "rozpovediserdza": {
     "domain": "rozpovediserdza.com",
     "og_method": "wordpress_db",
     "wp_db": "rozpovediserdza_db",
+    "url_pattern": "/{articleId}/",
     "description": "WordPress site with direct DB access"
   },
   "nathnenne": {
     "domain": "nathnenne.com",
     "og_method": "wordpress_db",
     "wp_db": "wp_nathnenne",
+    "url_pattern": "/{articleId}/",
     "description": "WordPress site with direct DB access"
   },
   "radoscz": {
     "domain": "radoscz.com",
     "og_method": "wordpress_db",
     "wp_db": "radoscz_db",
+    "url_pattern": "/{articleId}/",
     "description": "WordPress site with direct DB access"
   },
   "example_html": {
     "domain": "example.com",
     "og_method": "html_fetch",
-    "description": "Non-WordPress site - fetch OG tags from HTML"
+    "url_pattern": "/blog/{articleId}/",
+    "description": "Non-WordPress site with custom path - fetch OG tags from HTML"
   },
   "legacy_site": {
     "domain": "legacy.com",

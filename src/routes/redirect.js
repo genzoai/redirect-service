@@ -35,7 +35,11 @@ router.get('/:source/:site/:articleId', async (req, res) => {
 
   const siteConfig = sites[site];
   const utmParams = utmSources[source];
-  const targetUrl = `https://${siteConfig.domain}/${articleId}/?${utmParams}&utm_campaign=${articleId}`;
+
+  // Формируем URL по шаблону (если задан) или используем дефолтную схему
+  const urlPattern = siteConfig.url_pattern || '/{articleId}/';
+  const urlPath = urlPattern.replace('{articleId}', articleId);
+  const targetUrl = `https://${siteConfig.domain}${urlPath}?${utmParams}&utm_campaign=${articleId}`;
 
   try {
     // Если это бот - показываем OG preview
