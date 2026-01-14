@@ -88,6 +88,7 @@ For each site you want to redirect:
 - **OG Method:**
   - `wordpress_db` - Direct WordPress database access
   - `html_fetch` - Parse OG tags from HTML
+- **URL Pattern:** Optional path template with `{articleId}` (e.g., `/blog/{articleId}/`)
 - **WordPress DB:** Database name (if wordpress_db method)
 - **Description:** Optional description
 

@@ -209,6 +209,19 @@ class SetupWizard {
             { name: 'HTML Fetch (parse OG tags from HTML)', value: 'html_fetch' }
           ],
           default: 'html_fetch'
+        },
+        {
+          type: 'input',
+          name: 'urlPattern',
+          message: 'URL pattern for this site (use {articleId}, leave empty for default):',
+          default: '',
+          validate: (input) => {
+            if (!input) return true;
+            if (!input.includes('{articleId}')) {
+              return 'URL pattern must include {articleId}';
+            }
+            return true;
+          }
         }
       ]);
 
@@ -245,6 +258,9 @@ class SetupWizard {
 
       if (wpDbName) {
         siteConfig.wp_db = wpDbName;
+      }
+      if (siteAnswers.urlPattern) {
+        siteConfig.url_pattern = siteAnswers.urlPattern;
       }
 
       this.config.sites[siteAnswers.siteId] = siteConfig;
