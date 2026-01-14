@@ -20,6 +20,7 @@ NC='\033[0m' # No Color
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+SERVICE_NAME="${SERVICE_NAME:-redirect-service}"
 
 # Installation state
 INSTALL_STATE_FILE="$ROOT_DIR/.install-state"
@@ -329,7 +330,7 @@ step_setup_systemd() {
 
     print_step "Step 7/8: Setting Up Systemd Service"
 
-    if bash "$SCRIPT_DIR/setup-systemd.sh"; then
+    if SERVICE_NAME="$SERVICE_NAME" bash "$SCRIPT_DIR/setup-systemd.sh"; then
         save_state "systemd"
         print_success "Systemd service configured and started"
     else
@@ -343,7 +344,7 @@ step_verify_installation() {
     print_step "Step 8/8: Verifying Installation"
 
     # Check service status
-    if systemctl is-active --quiet redirect-service; then
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
         print_success "Redirect service is running"
     else
         print_warning "Service is not running"
@@ -381,7 +382,7 @@ print_summary() {
     DOMAIN=""
     if [ -f "$ROOT_DIR/.env" ]; then
         DOMAIN=$(grep -E "^DOMAIN=" "$ROOT_DIR/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' | tr -d "'" || echo "localhost")
-        API_TOKEN=$(grep -E "^API_BEARER_TOKEN=" "$ROOT_DIR/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' | tr -d "'" || echo "")
+        API_TOKEN=$(grep -E "^API_TOKEN=" "$ROOT_DIR/.env" 2>/dev/null | cut -d'=' -f2 | tr -d '"' | tr -d "'" || echo "")
     fi
 
     echo -e "${BOLD}Your Universal Redirect Service is now running!${NC}\n"
@@ -396,14 +397,14 @@ print_summary() {
     echo "  API Stats:  ${GREEN}http://localhost:${PORT:-3077}/api/stats${NC}"
     echo ""
 
-    echo -e "${BOLD}API Bearer Token (save this for n8n):${NC}"
+    echo -e "${BOLD}API Token (save this for n8n):${NC}"
     echo "  ${CYAN}$API_TOKEN${NC}"
     echo ""
 
     echo -e "${BOLD}Service Management:${NC}"
-    echo "  Status:  ${YELLOW}sudo systemctl status redirect-service${NC}"
-    echo "  Logs:    ${YELLOW}sudo journalctl -u redirect-service -f${NC}"
-    echo "  Restart: ${YELLOW}sudo systemctl restart redirect-service${NC}"
+    echo "  Status:  ${YELLOW}sudo systemctl status $SERVICE_NAME${NC}"
+    echo "  Logs:    ${YELLOW}sudo journalctl -u $SERVICE_NAME -f${NC}"
+    echo "  Restart: ${YELLOW}sudo systemctl restart $SERVICE_NAME${NC}"
     echo ""
 
     echo -e "${BOLD}Configuration Files:${NC}"
@@ -415,7 +416,7 @@ print_summary() {
     echo -e "${BOLD}Next Steps:${NC}"
     echo "  1. Test a redirect: ${YELLOW}curl -I http://$DOMAIN/yoursite/123${NC}"
     echo "  2. Setup n8n integration using API token above"
-    echo "  3. Monitor logs: ${YELLOW}sudo journalctl -u redirect-service -f${NC}"
+    echo "  3. Monitor logs: ${YELLOW}sudo journalctl -u $SERVICE_NAME -f${NC}"
     echo ""
 
     if ! is_completed "ssl"; then

@@ -91,7 +91,7 @@ systemctl start redirect-service.service
 systemctl status redirect-service.service
 
 # Health check
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 
 # Редирект (замените test-article на реальный)
 curl -I "https://go.genzo.ai/go/fb/realtruetales/test-article"
@@ -119,7 +119,7 @@ systemctl start redirect.service
 
 # Проверить
 systemctl status redirect.service
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 ```
 
 ---
@@ -127,7 +127,7 @@ curl http://localhost:3002/health
 ## ✅ Чеклист проверки
 
 - [ ] `systemctl status redirect-service.service` - Active (running)
-- [ ] `curl http://localhost:3002/health` - {"status":"ok"}
+- [ ] `curl http://localhost:3077/health` - {"status":"ok"}
 - [ ] Редирект работает (протестировать реальный URL)
 - [ ] API работает (протестировать с Bearer token)
 - [ ] Логи без ошибок: `journalctl -u redirect-service.service -n 100`

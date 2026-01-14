@@ -37,9 +37,9 @@ This will:
 
 #### Minimum Requirements
 - **OS:** Ubuntu 20.04+, Debian 11+, RHEL 8+
-- **Node.js:** >= 18.0.0
-- **npm:** >= 8.0.0
-- **MySQL/MariaDB:** >= 5.7
+- **Node.js:** >= 24.0.0
+- **npm:** >= 11.0.0
+- **MySQL/MariaDB:** >= 8.4.0
 - **RAM:** 512MB minimum, 1GB recommended
 - **Disk:** 1GB free space
 
@@ -71,7 +71,7 @@ The wizard will ask you:
 
 #### Server Configuration
 - **Domain:** Your domain/subdomain (e.g., go.example.com)
-- **Port:** Service port (default: 3002)
+- **Port:** Service port (default: 3077)
 
 #### Database Configuration
 - **Host:** Database host (default: localhost)
@@ -144,10 +144,10 @@ sudo bash scripts/setup-ssl.sh go.example.com
 ### 8. Setup Systemd Service
 
 ```bash
-sudo bash scripts/setup-systemd.sh
+sudo SERVICE_NAME=redirect-goexample bash scripts/setup-systemd.sh
 ```
 
-Creates and starts systemd service for automatic startup.
+Creates and starts systemd service for automatic startup. Use a unique `SERVICE_NAME` if multiple installs run on the same server.
 
 ### 9. Verify Installation
 
@@ -156,11 +156,13 @@ Creates and starts systemd service for automatic startup.
 sudo systemctl status redirect-service
 
 # Test health endpoint
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 
 # Test full URL
 curl -I http://your-domain.com/test/123
 ```
+
+If you used a custom service name, replace `redirect-service` with your `SERVICE_NAME`.
 
 ---
 
@@ -170,22 +172,22 @@ curl -I http://your-domain.com/test/123
 
 ```bash
 # 1. Create config files
-cp .env.example .env
+cp config/.env.example .env
 cp config/sites.example.json config/sites.json
 cp config/utm-sources.example.json config/utm-sources.json
 
 # 2. Edit configuration
 nano .env
 
-# 3. Start services
+# 3. Start services (use a unique project name per install)
 cd docker/
-docker-compose up -d
+docker compose -p redirect-goexample up -d
 
 # 4. Check logs
-docker-compose logs -f redirect
+docker compose -p redirect-goexample logs -f redirect
 
 # 5. Verify
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 ```
 
 See [docker/README.md](../docker/README.md) for detailed Docker documentation.
@@ -198,12 +200,12 @@ See [docker/README.md](../docker/README.md) for detailed Docker documentation.
 
 ```bash
 # Ubuntu/Debian
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # Verify
-node --version  # Should be >= 18.0.0
-npm --version   # Should be >= 8.0.0
+node --version  # Should be >= 24.0.0 (update to 24.13.0 LTS if lower)
+npm --version   # Should be >= 11.0.0
 ```
 
 ### 2. Install MySQL/MariaDB
@@ -249,7 +251,7 @@ npm run migrate:status
 
 Copy examples and edit:
 ```bash
-cp .env.example .env
+cp config/.env.example .env
 cp config/sites.example.json config/sites.json
 cp config/utm-sources.example.json config/utm-sources.json
 
@@ -304,15 +306,15 @@ sudo systemctl status redirect-service
 sudo journalctl -u redirect-service -f
 
 # Test endpoints
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 curl -I http://your-domain.com/yoursite/123
 ```
 
 ### 2. Setup n8n Integration
 
-Get your API Bearer Token from `.env`:
+Get your API Token from `.env`:
 ```bash
-grep API_BEARER_TOKEN .env
+grep API_TOKEN .env
 ```
 
 Use this token in n8n HTTP Request node:
@@ -350,7 +352,7 @@ node scripts/backfill-countries.js
 sudo journalctl -u redirect-service -n 50
 
 # Common issues:
-# - Port 3002 already in use → Change PORT in .env
+# - Port 3077 already in use → Change PORT in .env
 # - Cannot connect to database → Check DB credentials in .env
 # - Missing dependencies → Run npm install
 ```

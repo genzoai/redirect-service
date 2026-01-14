@@ -14,6 +14,8 @@ sudo systemctl status redirect-service
 # Status: failed
 ```
 
+If you used a custom service name, replace `redirect-service` with your `SERVICE_NAME` in all commands.
+
 **Solutions:**
 
 1. Check logs:
@@ -25,8 +27,8 @@ sudo journalctl -u redirect-service -n 50
 
 **Port already in use:**
 ```bash
-# Find process using port 3002
-sudo lsof -i :3002
+# Find process using port 3077
+sudo lsof -i :3077
 # Kill it
 sudo kill -9 PID
 # Or change PORT in .env
@@ -171,7 +173,7 @@ Then run migrations again.
 
 1. **Check Node.js is running:**
 ```bash
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 ```
 
 2. **Check Nginx config:**
@@ -187,7 +189,7 @@ sudo tail -f /var/log/nginx/error.log
 4. **Verify proxy_pass target:**
 ```nginx
 # Should be:
-proxy_pass http://localhost:3002;
+proxy_pass http://localhost:3077;
 ```
 
 ---
@@ -364,7 +366,7 @@ grep GEOIP_ENABLED .env
 
 1. **Check token in .env:**
 ```bash
-grep API_BEARER_TOKEN .env
+grep API_TOKEN .env
 ```
 
 2. **Update n8n workflow:**
@@ -374,7 +376,7 @@ grep API_BEARER_TOKEN .env
 3. **Test API manually:**
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  "http://localhost:3002/api/stats?site=test&period=week"
+  "http://localhost:3077/api/stats?site=test&period=week"
 ```
 
 ---
@@ -477,7 +479,7 @@ docker-compose logs redirect
 
 **Missing .env:**
 ```bash
-cp .env.example .env
+cp config/.env.example .env
 # Edit .env
 docker-compose up -d
 ```
@@ -530,7 +532,7 @@ docker-compose exec redirect ping db
 **Fix:**
 ```bash
 # Find process
-sudo lsof -i :3002
+sudo lsof -i :3077
 # Kill it
 sudo kill -9 PID
 # Or change port in .env

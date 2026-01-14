@@ -3,7 +3,7 @@
 **Универсальный сервис для UTM редиректов с OG preview, GeoIP tracking и полным API для n8n интеграции**
 
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Node](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docker/)
 
 ---
@@ -84,8 +84,8 @@ cp config/sites.example.json config/sites.json
 nano .env
 nano config/sites.json
 
-# Запустить
-docker-compose -f docker/docker-compose.yml up -d
+# Запустить (используйте уникальный project name)
+docker compose -p redirect-goexample -f docker/docker-compose.yml up -d
 ```
 
 ### Вариант 3: Ручная установка
@@ -116,9 +116,9 @@ npm start
 ## 📋 Системные требования
 
 ### Обязательные
-- **Node.js** >= 18.0.0
-- **npm** >= 8.0.0
-- **MySQL/MariaDB** >= 5.7
+- **Node.js** >= 24.0.0
+- **npm** >= 11.0.0
+- **MySQL/MariaDB** >= 8.4.0
 
 ### Опциональные
 - **nginx** >= 1.18 (для reverse proxy)
@@ -128,6 +128,10 @@ npm start
 ### Для WordPress DB метода
 - **Прямой доступ** к MySQL БД WordPress сайта
 - **Read-only пользователь** БД (безопасность)
+
+### Примечания
+- **Node.js ниже 24.0.0 не поддерживается** - обновитесь до Node.js **24.13.0 LTS**
+- Для Ubuntu/Debian установка: `curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && apt-get install -y nodejs`
 
 ---
 
@@ -140,6 +144,8 @@ npm start
 | `.env` | Переменные окружения (порт, БД, токены) |
 | `config/sites.json` | Конфигурация сайтов и OG методов |
 | `config/utm-sources.json` | Источники трафика и UTM метки |
+
+**Примечание:** поддерживаются `DB_PORT` и `WP_DB_PORT` для нестандартных портов MySQL.
 
 ### Пример sites.json
 
@@ -159,7 +165,7 @@ npm start
 }
 ```
 
-**Подробнее:** [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+**Подробнее:** [docs/CONFIGURATION.md](docs/CONFIGURATION.md) (шаблон `url_pattern` используется для редиректа, OG fetching и ссылок в API)
 
 ---
 
@@ -210,6 +216,7 @@ GET /api/stats
 ```
 
 **Авторизация:** Bearer Token
+**Источник токена:** переменная `API_TOKEN` в `.env`
 
 ### Параметры
 

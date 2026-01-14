@@ -15,7 +15,7 @@ const axios = require('axios');
  * @returns {Promise<Object|null>} OG данные
  */
 async function fetchOGFromHTML(siteConfig, articleSlug) {
-  const url = `https://${siteConfig.domain}/${articleSlug}/`;
+  const url = buildArticleUrl(siteConfig, articleSlug);
 
   try {
     // HTTP запрос к странице
@@ -121,6 +121,20 @@ function normalizeImageUrl(imageUrl, domain) {
 
   // Относительный URL (images/photo.jpg)
   return `https://${domain}/${imageUrl}`;
+}
+
+/**
+ * Строит URL статьи с учетом url_pattern
+ */
+function buildArticleUrl(siteConfig, articleId) {
+  const urlPattern = siteConfig.url_pattern || '/{articleId}/';
+  let urlPath = urlPattern.replace('{articleId}', articleId);
+
+  if (!urlPath.startsWith('/')) {
+    urlPath = `/${urlPath}`;
+  }
+
+  return `https://${siteConfig.domain}${urlPath}`;
 }
 
 module.exports = { fetchOGFromHTML };

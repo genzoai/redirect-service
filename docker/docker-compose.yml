@@ -6,7 +6,6 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: redirect-service
     restart: unless-stopped
     ports:
       - "${PORT:-3077}:3077"
@@ -29,7 +28,7 @@ services:
       - WP_DB_PASSWORD=${WP_DB_PASSWORD:-}
 
       # API authentication
-      - API_BEARER_TOKEN=${API_BEARER_TOKEN}
+      - API_TOKEN=${API_TOKEN}
 
       # GeoIP settings
       - GEOIP_ENABLED=${GEOIP_ENABLED:-true}
@@ -55,7 +54,6 @@ services:
   # MariaDB Database (for clicks logging)
   db:
     image: mariadb:10.11
-    container_name: redirect-db
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
