@@ -169,7 +169,7 @@ router.get('/', authenticate, async (req, res) => {
     }
 
     // Формируем ссылки на статьи
-    const sites = require('../config/sites.json');
+    const sites = require('../../config/sites.json');
     const siteConfig = sites[site];
 
     if (!siteConfig) {
