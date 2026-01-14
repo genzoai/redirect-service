@@ -4,8 +4,8 @@ const geoip = require('geoip-lite');
 const { mainPool } = require('../config/database');
 const { detectBot } = require('../middleware/bot-detector');
 const { fetchOGData } = require('../utils/og-fetcher');
-const utmSources = require('../config/utm-sources.json');
-const sites = require('../config/sites.json');
+const utmSources = require('../../config/utm-sources.json');
+const sites = require('../../config/sites.json');
 
 /**
  * Обработка редиректа: /go/:source/:site/:articleId
