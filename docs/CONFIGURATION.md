@@ -29,11 +29,12 @@ nano .env
 
 ```bash
 # Сервис
-PORT=3002
+PORT=3077
 NODE_ENV=production
 
 # База данных (логирование кликов)
 DB_HOST=127.0.0.1
+DB_PORT=3306
 DB_USER=redirect_user
 DB_PASSWORD=your_secure_password_here
 DB_NAME=redirect_db
@@ -47,6 +48,7 @@ API_TOKEN=your_secure_api_token_here
 ```bash
 # WordPress БД (только если используется og_method: wordpress_db)
 WP_DB_HOST=127.0.0.1
+WP_DB_PORT=3306
 WP_DB_USER=wp_readonly
 WP_DB_PASSWORD=your_wp_password_here
 
@@ -94,7 +96,7 @@ openssl rand -base64 32
 
 | Поле | Тип | Используется в | Описание |
 |------|-----|----------------|----------|
-| `url_pattern` | string | Все | Шаблон URL для редиректа. Поддерживает `{articleId}`. По умолчанию: `/{articleId}/` |
+| `url_pattern` | string | Все | Шаблон URL для редиректа и получения OG данных. Поддерживает `{articleId}`. По умолчанию: `/{articleId}/` |
 | `wp_db` | string | `wordpress_db` | Название WordPress БД |
 | `db` | string | Legacy | Старый формат (обратная совместимость) |
 | `description` | string | Все | Описание сайта для документации |
@@ -294,7 +296,7 @@ WP_DB_PASSWORD=password
 ```
 → Результат: `https://docs.example.com/article-slug?utm_params`
 
-**Примечание:** `{articleId}` - обязательный плейсхолдер, который заменяется на slug статьи.
+**Примечание:** `{articleId}` - обязательный плейсхолдер, который заменяется на slug статьи. Этот же шаблон используется в API (`/api/stats`) для генерации ссылок статей.
 
 ---
 
@@ -402,13 +404,13 @@ curl -s https://example.com/article/ | grep -i 'og:title'
 
 ```bash
 # Health check
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 
 # Тестовый редирект (как человек)
-curl -i "http://localhost:3002/go/fb/mysite/test-article"
+curl -i "http://localhost:3077/go/fb/mysite/test-article"
 
 # Тестовый preview (как бот)
-curl -A "facebookexternalhit/1.1" "http://localhost:3002/go/fb/mysite/test-article"
+curl -A "facebookexternalhit/1.1" "http://localhost:3077/go/fb/mysite/test-article"
 ```
 
 ---

@@ -62,6 +62,7 @@ Before updating:
 - [ ] Check disk space (>1GB free)
 - [ ] Note current version: `grep version package.json`
 - [ ] Ensure service is running: `systemctl status redirect-service`
+  If you used a custom service name, replace `redirect-service` with your `SERVICE_NAME`.
 
 ---
 
@@ -124,7 +125,7 @@ sudo systemctl start redirect-service
 sudo systemctl status redirect-service
 
 # Health check
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 
 # Check logs
 sudo journalctl -u redirect-service -n 50
@@ -254,7 +255,7 @@ sudo bash scripts/update.sh
 
 ```bash
 sudo systemctl status redirect-service
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 ```
 
 ### 2. Check Logs
@@ -273,7 +274,7 @@ curl -I http://your-domain.com/test/123
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  "http://localhost:3002/api/stats?site=yoursite&period=week"
+  "http://localhost:3077/api/stats?site=yoursite&period=week"
 ```
 
 ### 5. Monitor for Issues
@@ -350,7 +351,7 @@ sudo bash scripts/rollback.sh
 Auto-rollback should occur. If manual intervention needed:
 ```bash
 # Check what's failing
-curl -v http://localhost:3002/health
+curl -v http://localhost:3077/health
 
 # Check database connection
 mysql -h localhost -u redirect_user -p redirect_db

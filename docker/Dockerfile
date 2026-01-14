@@ -1,6 +1,6 @@
 # Universal Redirect Service - Production Dockerfile
-# Node.js 18 LTS on Alpine Linux for minimal image size
-FROM node:18-alpine
+# Node.js 24.13.0 LTS on Alpine Linux for minimal image size
+FROM node:24.13.0-alpine
 
 # Set working directory
 WORKDIR /app
@@ -26,7 +26,7 @@ RUN mkdir -p logs config
 
 # Health check to ensure service is responding
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3002/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })" || exit 1
+    CMD node -e "require('http').get('http://localhost:3077/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })" || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
@@ -35,7 +35,7 @@ ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "src/server.js"]
 
 # Expose the application port
-EXPOSE 3002
+EXPOSE 3077
 
 # Labels for metadata
 LABEL maintainer="Genzo AI LLP"

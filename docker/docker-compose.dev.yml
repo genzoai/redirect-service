@@ -1,14 +1,13 @@
 version: '3.8'
 
 # Development environment - extends production docker-compose.yml
-# Usage: docker-compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up
+# Usage: docker compose -p redirect-goexample -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up
 
 services:
   redirect:
     build:
       context: ..
       dockerfile: docker/Dockerfile.dev
-    container_name: redirect-service-dev
     environment:
       # Override NODE_ENV for development
       - NODE_ENV=development
@@ -40,7 +39,6 @@ services:
     tty: true
 
   db:
-    container_name: redirect-db-dev
     ports:
       # Expose database port for local development tools
       - "3306:3306"

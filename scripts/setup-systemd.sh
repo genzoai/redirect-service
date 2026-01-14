@@ -20,8 +20,8 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
-# Service name
-SERVICE_NAME="redirect-service"
+# Service name (override with SERVICE_NAME=custom-name)
+SERVICE_NAME="${SERVICE_NAME:-redirect-service}"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 
 ###############################################################################

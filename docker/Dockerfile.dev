@@ -1,6 +1,6 @@
 # Universal Redirect Service - Development Dockerfile
-# Node.js 18 LTS on Alpine Linux
-FROM node:18-alpine
+# Node.js 24.13.0 LTS on Alpine Linux
+FROM node:24.13.0-alpine
 
 # Set working directory
 WORKDIR /app
@@ -33,7 +33,7 @@ ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["npm", "run", "dev"]
 
 # Expose the application port and debugging port
-EXPOSE 3002 9229
+EXPOSE 3077 9229
 
 # Labels for metadata
 LABEL maintainer="Genzo AI LLP"

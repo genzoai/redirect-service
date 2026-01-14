@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 BACKUP_DIR="$ROOT_DIR/../redirect-service-backups"
-SERVICE_NAME="redirect-service"
+SERVICE_NAME="${SERVICE_NAME:-redirect-service}"
 
 ###############################################################################
 # Functions
@@ -247,7 +247,7 @@ perform_rollback() {
         print_success "Service started successfully"
 
         # Health check
-        PORT=$(grep '^PORT=' "$ROOT_DIR/.env" | cut -d'=' -f2 || echo "3002")
+        PORT=$(grep '^PORT=' "$ROOT_DIR/.env" | cut -d'=' -f2 || echo "3077")
         HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/health" 2>/dev/null || echo "000")
 
         if [ "$HTTP_CODE" = "200" ]; then

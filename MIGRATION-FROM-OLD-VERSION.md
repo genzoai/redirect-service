@@ -4,7 +4,7 @@
 
 Этот документ описывает процесс обновления production сервиса с `/opt/redirect/` (старая версия) на новую универсальную версию `/opt/redirect-service/`.
 
-**Текущая версия на сервере:** `/opt/redirect/` (порт 3002)
+**Текущая версия на сервере:** `/opt/redirect/` (порт 3077)
 **Новая версия:** `redirect_service/` (расширенная функциональность)
 
 ---
@@ -62,7 +62,7 @@ ssh -i ~/.ssh/id_ed25519_KaktusSrvr root@91.98.69.196
 systemctl status redirect.service
 
 # Проверить порт
-ss -tlnp | grep 3002
+ss -tlnp | grep 3077
 
 # Посмотреть текущую структуру
 ls -la /opt/redirect/
@@ -163,7 +163,7 @@ nano config/.env
 
 Проверить настройки:
 ```bash
-PORT=3002
+PORT=3077
 NODE_ENV=production
 
 DB_HOST=127.0.0.1
@@ -272,7 +272,7 @@ cat /etc/nginx/sites-available/go.genzo.ai
 sudo nano /etc/nginx/sites-available/go.genzo.ai
 ```
 
-Базовая конфигурация должна остаться такой же (proxy на localhost:3002).
+Базовая конфигурация должна остаться такой же (proxy на localhost:3077).
 
 Перезагрузить nginx:
 ```bash
@@ -302,7 +302,7 @@ sudo systemctl status geoip-update.timer
 
 ```bash
 # Health check
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 
 # Проверить редирект
 curl -I "https://go.genzo.ai/go/fb/realtruetales/test-article"
@@ -364,7 +364,7 @@ sudo systemctl start redirect.service
 
 # 3. Проверить
 sudo systemctl status redirect.service
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 ```
 
 ### Полный откат с восстановлением
@@ -391,7 +391,7 @@ sudo systemctl start redirect.service
 ## ✅ Проверочный чеклист после миграции
 
 - [ ] Сервис запущен: `systemctl status redirect-service.service`
-- [ ] Health check работает: `curl http://localhost:3002/health`
+- [ ] Health check работает: `curl http://localhost:3077/health`
 - [ ] Редиректы работают: протестировать реальный URL
 - [ ] OG preview работает: протестировать с User-Agent бота
 - [ ] API статистики работает: протестировать с Bearer token

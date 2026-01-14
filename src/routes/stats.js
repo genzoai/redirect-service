@@ -183,7 +183,7 @@ router.get('/', authenticate, async (req, res) => {
       const articleData = {
         article_id: article.article_id,
         clicks: article.clicks,
-        url: `https://${siteConfig.domain}/${article.article_id}/`
+        url: buildArticleUrl(siteConfig, article.article_id)
       };
 
       // Добавляем топ стран для статьи, если включена статистика по странам
@@ -197,7 +197,7 @@ router.get('/', authenticate, async (req, res) => {
     const topPreviewArticlesWithUrls = topPreviewArticles.map(article => ({
       article_id: article.article_id,
       previews: article.previews,
-      url: `https://${siteConfig.domain}/${article.article_id}/`
+      url: buildArticleUrl(siteConfig, article.article_id)
     }));
 
     // Формируем ответ
@@ -369,3 +369,17 @@ function formatDateTime(date) {
 }
 
 module.exports = router;
+
+/**
+ * Строит URL статьи с учетом url_pattern
+ */
+function buildArticleUrl(siteConfig, articleId) {
+  const urlPattern = siteConfig.url_pattern || '/{articleId}/';
+  let urlPath = urlPattern.replace('{articleId}', articleId);
+
+  if (!urlPath.startsWith('/')) {
+    urlPath = `/${urlPath}`;
+  }
+
+  return `https://${siteConfig.domain}${urlPath}`;
+}

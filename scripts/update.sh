@@ -26,8 +26,8 @@ GITHUB_REPO="genzoai/redirect-service"
 BACKUP_DIR="$ROOT_DIR/../redirect-service-backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_PATH="$BACKUP_DIR/backup_$TIMESTAMP"
-SERVICE_NAME="redirect-service"
-HEALTH_ENDPOINT="http://localhost:${PORT:-3002}/health"
+SERVICE_NAME="${SERVICE_NAME:-redirect-service}"
+HEALTH_ENDPOINT="http://localhost:${PORT:-3077}/health"
 
 # Flags
 SKIP_BACKUP=false

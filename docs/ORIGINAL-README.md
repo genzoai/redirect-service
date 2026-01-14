@@ -77,7 +77,7 @@ OG HTML    302 Redirect
 
 ```bash
 # Сервер
-PORT=3002
+PORT=3077
 NODE_ENV=production
 
 # База данных (логирование кликов)
@@ -99,7 +99,7 @@ API_TOKEN=your_secure_api_token_here
 
 Файл: `/etc/nginx/sites-available/go.genzo.ai`
 
-Проксирует запросы с `https://go.genzo.ai` на `localhost:3002`
+Проксирует запросы с `https://go.genzo.ai` на `localhost:3077`
 
 ### Systemd сервис
 
@@ -246,10 +246,10 @@ mysql -e "SELECT type, COUNT(*) FROM redirect_db.clicks GROUP BY type;" redirect
 
 ## Технические детали
 
-- **Язык:** Node.js 18.20.8
+- **Язык:** Node.js 24.13.0 LTS
 - **Framework:** Express.js
 - **База данных:** MariaDB (MySQL)
-- **Порт:** 3002
+- **Порт:** 3077
 - **SSL:** Let's Encrypt (автообновление через certbot)
 - **Процесс:** systemd сервис с автозапуском
 

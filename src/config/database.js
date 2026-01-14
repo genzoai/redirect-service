@@ -3,6 +3,7 @@ const mysql = require('mysql2/promise');
 // Пул для основной БД (логирование кликов)
 const mainPool = mysql.createPool({
   host: process.env.DB_HOST,
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
@@ -17,6 +18,7 @@ let wpPool = null;
 if (process.env.WP_DB_HOST && process.env.WP_DB_USER && process.env.WP_DB_PASSWORD) {
   wpPool = mysql.createPool({
     host: process.env.WP_DB_HOST,
+    port: process.env.WP_DB_PORT ? parseInt(process.env.WP_DB_PORT, 10) : 3306,
     user: process.env.WP_DB_USER,
     password: process.env.WP_DB_PASSWORD,
     waitForConnections: true,

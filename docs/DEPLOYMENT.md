@@ -87,7 +87,7 @@ sudo bash scripts/install.sh
 ```
 Internet → Domain (A Record)
          → Nginx (:80, :443)
-         → Node.js (:3002)
+         → Node.js (:3077)
          → MySQL (localhost)
          → [Optional] WordPress DB (remote/local)
 ```
@@ -128,7 +128,7 @@ Internet → Load Balancer
 `.env`:
 ```bash
 NODE_ENV=production
-PORT=3002
+PORT=3077
 DB_HOST=localhost  # or RDS endpoint
 LOG_LEVEL=info
 ```
@@ -146,7 +146,7 @@ LOG_LEVEL=info
 `.env`:
 ```bash
 NODE_ENV=staging
-PORT=3002
+PORT=3077
 DB_HOST=staging-db
 LOG_LEVEL=debug
 ```
@@ -163,7 +163,7 @@ LOG_LEVEL=debug
 `.env`:
 ```bash
 NODE_ENV=development
-PORT=3002
+PORT=3077
 DB_HOST=localhost
 LOG_LEVEL=debug
 DEBUG=*
@@ -183,7 +183,7 @@ docker-compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up
 Already configured by `setup-nginx.sh`:
 ```nginx
 location / {
-    proxy_pass http://localhost:3002;
+    proxy_pass http://localhost:3077;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
@@ -229,8 +229,10 @@ sudo systemctl status redirect-service
 sudo journalctl -u redirect-service -f
 
 # Health endpoint
-curl http://localhost:3002/health
+curl http://localhost:3077/health
 ```
+
+If you used a custom service name, replace `redirect-service` with your `SERVICE_NAME`.
 
 ### Uptime Monitoring
 

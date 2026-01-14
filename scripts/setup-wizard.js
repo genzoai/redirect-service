@@ -381,7 +381,7 @@ class SetupWizard {
       {
         type: 'input',
         name: 'apiBearerToken',
-        message: 'API Bearer Token for n8n (leave empty to generate):',
+        message: 'API Token for n8n (leave empty to generate):',
         default: ''
       }
     ]);
@@ -391,10 +391,10 @@ class SetupWizard {
 
     // Generate or use provided API token
     if (answers.apiBearerToken && answers.apiBearerToken.trim().length > 0) {
-      this.config.env.API_BEARER_TOKEN = answers.apiBearerToken.trim();
+      this.config.env.API_TOKEN = answers.apiBearerToken.trim();
     } else {
-      this.config.env.API_BEARER_TOKEN = this.generateToken();
-      console.log(`${colors.yellow}Generated API Bearer Token: ${this.config.env.API_BEARER_TOKEN}${colors.reset}`);
+      this.config.env.API_TOKEN = this.generateToken();
+      console.log(`${colors.yellow}Generated API Token: ${this.config.env.API_TOKEN}${colors.reset}`);
     }
 
     // WordPress DB settings (optional)
@@ -576,7 +576,7 @@ class SetupWizard {
 
     lines.push(
       '# API Authentication (for n8n and other clients)',
-      `API_BEARER_TOKEN=${this.config.env.API_BEARER_TOKEN}`,
+      `API_TOKEN=${this.config.env.API_TOKEN}`,
       '',
       '# GeoIP Settings',
       `GEOIP_ENABLED=${this.config.env.GEOIP_ENABLED}`,
@@ -622,8 +622,8 @@ class SetupWizard {
     console.log(`\n${colors.bold}Or run the complete installer:${colors.reset}`);
     console.log(`  ${colors.yellow}sudo bash scripts/install.sh${colors.reset}\n`);
 
-    console.log(`${colors.bold}API Bearer Token (save this for n8n):${colors.reset}`);
-    console.log(`  ${colors.green}${this.config.env.API_BEARER_TOKEN}${colors.reset}\n`);
+    console.log(`${colors.bold}API Token (save this for n8n):${colors.reset}`);
+    console.log(`  ${colors.green}${this.config.env.API_TOKEN}${colors.reset}\n`);
   }
 }
 
