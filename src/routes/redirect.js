@@ -34,7 +34,7 @@ router.get('/:source/:site/:articleId', async (req, res) => {
   }
 
   const siteConfig = sites[site];
-  const utmParams = utmSources[source];
+  const utmParams = buildUtmParams(utmSources[source]);
 
   // Формируем URL по шаблону (если задан) или используем дефолтную схему
   const urlPattern = siteConfig.url_pattern || '/{articleId}/';
@@ -124,3 +124,26 @@ function escapeHtml(text) {
 }
 
 module.exports = router;
+
+/**
+ * Преобразует UTM конфиг в строку параметров
+ */
+function buildUtmParams(utmConfig) {
+  if (!utmConfig) return '';
+
+  if (typeof utmConfig === 'string') {
+    return utmConfig.replace(/^\?/, '');
+  }
+
+  if (typeof utmConfig === 'object') {
+    const params = new URLSearchParams();
+    Object.entries(utmConfig).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, String(value));
+      }
+    });
+    return params.toString();
+  }
+
+  return '';
+}
