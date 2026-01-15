@@ -8,7 +8,7 @@ const { authenticate } = require('../middleware/auth');
  * GET /api/stats?site=realtruetales&period=week
  */
 router.get('/', authenticate, async (req, res) => {
-  const { site, period, start_date, end_date, limit, countries_limit } = req.query;
+  const { site, period, start_date, end_date, limit, countries_limit, source } = req.query;
 
   if (!site) {
     return res.status(400).json({
@@ -46,6 +46,11 @@ router.get('/', authenticate, async (req, res) => {
       });
     }
 
+    const sourceFilter = source ? String(source) : null;
+    const sourceCondition = sourceFilter ? ' AND source = ?' : '';
+    const baseParams = [site, dateRange.start, dateRange.end];
+    const paramsWithSource = sourceFilter ? [...baseParams, sourceFilter] : baseParams;
+
     // Получаем общее количество переходов (clicks)
     const [totalClicks] = await mainPool.query(
       `SELECT COUNT(*) as total
@@ -53,8 +58,8 @@ router.get('/', authenticate, async (req, res) => {
        WHERE site = ?
          AND type = 'click'
          AND created_at >= ?
-         AND created_at <= ?`,
-      [site, dateRange.start, dateRange.end]
+         AND created_at <= ?${sourceCondition}`,
+      paramsWithSource
     );
 
     // Получаем общее количество preview (боты)
@@ -64,8 +69,8 @@ router.get('/', authenticate, async (req, res) => {
        WHERE site = ?
          AND type = 'preview'
          AND created_at >= ?
-         AND created_at <= ?`,
-      [site, dateRange.start, dateRange.end]
+         AND created_at <= ?${sourceCondition}`,
+      paramsWithSource
     );
 
     // Получаем статьи по кликам
@@ -77,11 +82,12 @@ router.get('/', authenticate, async (req, res) => {
          AND type = 'click'
          AND created_at >= ?
          AND created_at <= ?
+         ${sourceFilter ? 'AND source = ?' : ''}
        GROUP BY article_id
        ORDER BY clicks DESC
        ${articlesLimit ? `LIMIT ${articlesLimit}` : ''}`;
 
-    const [topArticles] = await mainPool.query(clicksQuery, [site, dateRange.start, dateRange.end]);
+    const [topArticles] = await mainPool.query(clicksQuery, paramsWithSource);
 
     // Получаем статьи по preview (боты)
     const previewsQuery = `SELECT
@@ -92,11 +98,12 @@ router.get('/', authenticate, async (req, res) => {
          AND type = 'preview'
          AND created_at >= ?
          AND created_at <= ?
+         ${sourceFilter ? 'AND source = ?' : ''}
        GROUP BY article_id
        ORDER BY previews DESC
        ${articlesLimit ? `LIMIT ${articlesLimit}` : ''}`;
 
-    const [topPreviewArticles] = await mainPool.query(previewsQuery, [site, dateRange.start, dateRange.end]);
+    const [topPreviewArticles] = await mainPool.query(previewsQuery, paramsWithSource);
 
     // Получаем статистику по странам (если нужно)
     let topCountries = [];
@@ -113,11 +120,12 @@ router.get('/', authenticate, async (req, res) => {
           AND created_at >= ?
           AND created_at <= ?
           AND country IS NOT NULL
+          ${sourceFilter ? 'AND source = ?' : ''}
         GROUP BY country
         ORDER BY clicks DESC
         ${countriesLimit ? `LIMIT ${countriesLimit}` : ''}`;
 
-      const [countriesData] = await mainPool.query(countriesQuery, [site, dateRange.start, dateRange.end]);
+      const [countriesData] = await mainPool.query(countriesQuery, paramsWithSource);
 
       // Вычисляем процент для каждой страны
       const totalClicksCount = totalClicks[0].total;
@@ -142,13 +150,16 @@ router.get('/', authenticate, async (req, res) => {
             AND created_at >= ?
             AND created_at <= ?
             AND country IS NOT NULL
+            ${sourceFilter ? 'AND source = ?' : ''}
             AND article_id IN (${placeholders})
           GROUP BY article_id, country
           ORDER BY article_id, clicks DESC`;
 
         const [articleCountriesData] = await mainPool.query(
           articleCountriesQuery,
-          [site, dateRange.start, dateRange.end, ...articleIds]
+          sourceFilter
+            ? [site, dateRange.start, dateRange.end, sourceFilter, ...articleIds]
+            : [site, dateRange.start, dateRange.end, ...articleIds]
         );
 
         // Группируем по article_id и берем топ N стран для каждой статьи
@@ -204,6 +215,7 @@ router.get('/', authenticate, async (req, res) => {
     const responseData = {
       site,
       period: period || 'custom',
+      source: sourceFilter || undefined,
       date_range: {
         start: dateRange.start,
         end: dateRange.end
@@ -219,6 +231,27 @@ router.get('/', authenticate, async (req, res) => {
     if (countriesLimit !== 0) {
       responseData.top_countries = topCountries;
     }
+
+    // Добавляем разбивку по источникам (всегда по всем источникам)
+    const sourcesQuery = `SELECT
+        source,
+        SUM(CASE WHEN type = 'click' THEN 1 ELSE 0 END) AS clicks,
+        SUM(CASE WHEN type = 'preview' THEN 1 ELSE 0 END) AS previews,
+        COUNT(*) AS total
+      FROM clicks
+      WHERE site = ?
+        AND created_at >= ?
+        AND created_at <= ?
+      GROUP BY source
+      ORDER BY total DESC`;
+
+    const [sourcesData] = await mainPool.query(sourcesQuery, baseParams);
+    responseData.sources = sourcesData.map(row => ({
+      source: row.source,
+      clicks: row.clicks,
+      previews: row.previews,
+      total: row.total
+    }));
 
     // Возвращаем результат
     return res.json({

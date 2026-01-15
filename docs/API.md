@@ -33,6 +33,7 @@ Universal Redirect Service поддерживает разные методы п
   period: week                 (обязательно: day, week, month, quarter, all_time и так далее)
   limit: 5                     (опционально: количество постов, по умолчанию 5, all = все посты)
   countries_limit: 5           (опционально: количество стран, по умолчанию 5, all = все страны, 0 = не показывать)
+  source: fb                   (опционально: фильтр по источнику, например fb/yt/tg)
 
   Или для кастомного периода:
   site: realtruetales
@@ -178,6 +179,12 @@ curl -H "Authorization: Bearer TOKEN" \
   "https://go.genzo.ai/api/stats?site=realtruetales&period=week&countries_limit=10"
 ```
 
+### 10. Статистика по конкретному источнику
+```bash
+curl -H "Authorization: Bearer TOKEN" \
+  "https://go.genzo.ai/api/stats?site=realtruetales&period=week&source=fb"
+```
+
 ### 10. Статистика со ВСЕМИ странами
 ```bash
 curl -H "Authorization: Bearer TOKEN" \
@@ -271,6 +278,14 @@ curl -H "Authorization: Bearer TOKEN" \
         "previews": 8,
         "url": "https://realtruetales.com/t95buwa/"
       }
+    ],
+    "sources": [
+      {
+        "source": "fb",
+        "clicks": 25,
+        "previews": 10,
+        "total": 35
+      }
     ]
   }
 }
@@ -288,6 +303,7 @@ curl -H "Authorization: Bearer TOKEN" \
 - `top_articles` - топ статей по переходам людей
   - `top_countries` - **НОВОЕ:** топ стран для этой статьи (если `countries_limit` != 0)
 - `top_articles_previews` - топ статей по preview ботов
+- `sources` - разбивка по источникам трафика (click + preview)
 
 **Примечание:** Поля `top_countries` появляются только если параметр `countries_limit` не равен `0` (по умолчанию топ-5).
 
