@@ -52,6 +52,10 @@ print_warning() {
     echo -e "${YELLOW}⚠ $1${NC}"
 }
 
+print_info() {
+    echo -e "${BLUE}ℹ $1${NC}"
+}
+
 # Check if running as root
 check_root() {
     if [ "$EUID" -ne 0 ]; then
