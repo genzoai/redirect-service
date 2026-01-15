@@ -126,7 +126,6 @@ check_installation_directory() {
                             return 0
                         else
                             print_info "Clean installation cancelled"
-                            ;;
                         fi
                         ;;
                     3)
