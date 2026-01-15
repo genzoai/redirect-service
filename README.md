@@ -227,6 +227,7 @@ GET /api/stats
 | `period` | Период (day, week, month, all_time) | ✅ Да |
 | `limit` | Количество постов (5, 10, all) | Нет (default: 5) |
 | `countries_limit` | Количество стран (5, 10, all, 0) | Нет (default: 5) |
+| `source` | Фильтр по источнику (fb, yt, tg, ...) | Нет |
 
 ### Примеры запросов
 
