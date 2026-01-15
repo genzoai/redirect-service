@@ -335,6 +335,16 @@ WP_DB_PASSWORD=password
 }
 ```
 
+Или объектный формат:
+```json
+{
+  "source_id": {
+    "utm_source": "value",
+    "utm_medium": "value"
+  }
+}
+```
+
 ### Пример
 
 ```json
