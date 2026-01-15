@@ -6,6 +6,13 @@
  */
 
 const inquirer = require('inquirer');
+const prompt = inquirer.prompt ||
+  (inquirer.default && inquirer.default.prompt) ||
+  (typeof inquirer.createPromptModule === 'function' ? inquirer.createPromptModule() : null);
+
+if (!prompt) {
+  throw new Error('Inquirer prompt API not available');
+}
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -76,7 +83,7 @@ class SetupWizard {
   async setupServer() {
     console.log(`${colors.cyan}${colors.bold}Step 1: Server Configuration${colors.reset}\n`);
 
-    const answers = await inquirer.prompt([
+    const answers = await prompt([
       {
         type: 'input',
         name: 'domain',
@@ -118,7 +125,7 @@ class SetupWizard {
   async setupDatabase() {
     console.log(`\n${colors.cyan}${colors.bold}Step 2: Database Configuration${colors.reset}\n`);
 
-    const answers = await inquirer.prompt([
+    const answers = await prompt([
       {
         type: 'input',
         name: 'dbHost',
@@ -174,7 +181,7 @@ class SetupWizard {
     let addMore = true;
 
     while (addMore) {
-      const siteAnswers = await inquirer.prompt([
+      const siteAnswers = await prompt([
         {
           type: 'input',
           name: 'siteId',
@@ -228,7 +235,7 @@ class SetupWizard {
       // If WordPress DB method, ask for DB name
       let wpDbName = null;
       if (siteAnswers.ogMethod === 'wordpress_db') {
-        const wpAnswers = await inquirer.prompt([
+        const wpAnswers = await prompt([
           {
             type: 'input',
             name: 'wpDbName',
@@ -240,7 +247,7 @@ class SetupWizard {
       }
 
       // Add description
-      const descAnswers = await inquirer.prompt([
+      const descAnswers = await prompt([
         {
           type: 'input',
           name: 'description',
@@ -268,7 +275,7 @@ class SetupWizard {
       console.log(`${colors.green}✓ Site "${siteAnswers.siteId}" added${colors.reset}`);
 
       // Ask if want to add more
-      const moreAnswers = await inquirer.prompt([
+      const moreAnswers = await prompt([
         {
           type: 'confirm',
           name: 'addMore',
@@ -296,7 +303,7 @@ class SetupWizard {
       email: { utm_medium: 'email', utm_source: 'newsletter' }
     };
 
-    const answers = await inquirer.prompt([
+    const answers = await prompt([
       {
         type: 'confirm',
         name: 'useDefaults',
@@ -311,7 +318,7 @@ class SetupWizard {
     }
 
     // Ask if want to add custom sources
-    const customAnswers = await inquirer.prompt([
+    const customAnswers = await prompt([
       {
         type: 'confirm',
         name: 'addCustom',
@@ -324,7 +331,7 @@ class SetupWizard {
       let addMore = true;
 
       while (addMore) {
-        const sourceAnswers = await inquirer.prompt([
+        const sourceAnswers = await prompt([
           {
             type: 'input',
             name: 'slug',
@@ -361,7 +368,7 @@ class SetupWizard {
 
         console.log(`${colors.green}✓ Source "${sourceAnswers.slug}" added${colors.reset}`);
 
-        const moreAnswers = await inquirer.prompt([
+        const moreAnswers = await prompt([
           {
             type: 'confirm',
             name: 'addMore',
@@ -381,7 +388,7 @@ class SetupWizard {
   async setupAdditionalSettings() {
     console.log(`\n${colors.cyan}${colors.bold}Step 5: Additional Settings${colors.reset}\n`);
 
-    const answers = await inquirer.prompt([
+    const answers = await prompt([
       {
         type: 'confirm',
         name: 'enableGeoIP',
@@ -417,7 +424,7 @@ class SetupWizard {
     if (this.hasWordPressSites()) {
       console.log(`\n${colors.yellow}WordPress database access required for some sites${colors.reset}\n`);
 
-      const wpAnswers = await inquirer.prompt([
+      const wpAnswers = await prompt([
         {
           type: 'input',
           name: 'wpDbHost',
@@ -499,7 +506,7 @@ class SetupWizard {
       console.log(`${colors.red}✗ Cannot connect to WordPress database${colors.reset}`);
       console.log(`${colors.yellow}Error: ${error.message.split('\n')[0]}${colors.reset}`);
 
-      const continueAnswers = await inquirer.prompt([
+      const continueAnswers = await prompt([
         {
           type: 'confirm',
           name: 'continueAnyway',
