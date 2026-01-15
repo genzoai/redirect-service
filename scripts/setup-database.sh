@@ -278,7 +278,7 @@ run_migrations() {
     fi
 
     # Run each migration
-    for sql_file in $SQL_FILES; then
+    for sql_file in $SQL_FILES; do
         filename=$(basename "$sql_file")
         echo -n "  Running $filename... "
 
