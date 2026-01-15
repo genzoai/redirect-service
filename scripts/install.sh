@@ -203,6 +203,15 @@ step_setup_wizard() {
 
     cd "$ROOT_DIR"
 
+    # Ensure wizard dependencies are available (inquirer is a dev dependency)
+    if ! node -e "require('inquirer')" >/dev/null 2>&1; then
+        print_info "Installing wizard dependencies..."
+        if ! npm install; then
+            print_error "npm install failed (wizard dependencies)"
+            exit 1
+        fi
+    fi
+
     if [ -f ".env" ]; then
         print_warning "Configuration files already exist"
         echo -e "${YELLOW}Overwrite existing configuration? [y/N]:${NC}"
