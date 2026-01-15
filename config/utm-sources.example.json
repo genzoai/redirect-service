@@ -1,5 +1,6 @@
 {
   "fb": "utm_source=facebook&utm_medium=comment",
+  "yt": "utm_source=youtube&utm_medium=video",
   "tg": "utm_source=telegram&utm_medium=message",
   "ig": "utm_source=instagram&utm_medium=story",
   "email": "utm_source=email&utm_medium=newsletter"

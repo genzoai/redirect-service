@@ -350,6 +350,7 @@ WP_DB_PASSWORD=password
 ```json
 {
   "fb": "utm_source=facebook&utm_medium=social",
+  "yt": "utm_source=youtube&utm_medium=video",
   "ig": "utm_source=instagram&utm_medium=social",
   "tg": "utm_source=telegram&utm_medium=messenger",
   "email": "utm_source=newsletter&utm_medium=email",
