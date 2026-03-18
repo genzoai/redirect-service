@@ -372,6 +372,16 @@ https://myblog.com/article-slug/?utm_source=facebook&utm_medium=social&utm_campa
 
 **Примечание:** `utm_campaign` автоматически добавляется = `article_slug`
 
+Для отдельных кампаний внутри одного source используй формат:
+```
+https://go.domain.com/go/fb/spring_sale/myblog/article-slug
+```
+
+Финальный редирект:
+```
+https://myblog.com/article-slug/?utm_source=facebook&utm_medium=social&utm_campaign=spring_sale&utm_content=article-slug
+```
+
 ---
 
 ## ✅ Проверка конфигурации

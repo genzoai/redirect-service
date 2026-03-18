@@ -8,10 +8,24 @@ const utmSources = require('../../config/utm-sources.json');
 const sites = require('../../config/sites.json');
 
 /**
- * Обработка редиректа: /go/:source/:site/:articleId
+ * Новый формат: /go/:source/:campaign/:site/:articleId
+ * Пример: /go/fb/spring_sale/wromance/1646
+ */
+router.get('/:source/:campaign/:site/:articleId', async (req, res) => {
+  const { source, campaign, site, articleId } = req.params;
+  return handleRedirect(req, res, { source, campaign, site, articleId });
+});
+
+/**
+ * Legacy формат: /go/:source/:site/:articleId
+ * Сохраняем для обратной совместимости.
  */
 router.get('/:source/:site/:articleId', async (req, res) => {
   const { source, site, articleId } = req.params;
+  return handleRedirect(req, res, { source, campaign: null, site, articleId });
+});
+
+async function handleRedirect(req, res, { source, campaign, site, articleId }) {
   const userAgent = req.headers['user-agent'] || '';
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   const isBot = detectBot(userAgent);
@@ -34,18 +48,19 @@ router.get('/:source/:site/:articleId', async (req, res) => {
   }
 
   const siteConfig = sites[site];
-  const utmParams = buildUtmParams(utmSources[source]);
+  const utmParams = buildUtmParams(utmSources[source], articleId, campaign);
 
   // Формируем URL по шаблону (если задан) или используем дефолтную схему
   const urlPattern = siteConfig.url_pattern || '/{articleId}/';
   const urlPath = urlPattern.replace('{articleId}', articleId);
-  const targetUrl = `https://${siteConfig.domain}${urlPath}?${utmParams}&utm_campaign=${articleId}`;
+  const queryString = utmParams ? `?${utmParams}` : '';
+  const targetUrl = `https://${siteConfig.domain}${urlPath}${queryString}`;
 
   try {
     // Если это бот - показываем OG preview
     if (isBot) {
       // Логируем как preview
-      await logClick(ip, userAgent, source, site, articleId, 'preview', country);
+      await logClick(ip, userAgent, source, campaign, site, articleId, 'preview', country);
 
       // Получаем OG данные (универсальный fetcher выберет стратегию)
       const ogData = await fetchOGData(siteConfig, articleId);
@@ -61,24 +76,24 @@ router.get('/:source/:site/:articleId', async (req, res) => {
     }
 
     // Если это человек - логируем и редиректим
-    await logClick(ip, userAgent, source, site, articleId, 'click', country);
+    await logClick(ip, userAgent, source, campaign, site, articleId, 'click', country);
     return res.redirect(302, targetUrl);
 
   } catch (error) {
     console.error('Error processing redirect:', error);
     return res.status(500).send('Internal server error');
   }
-});
+}
 
 /**
  * Логирует клик в базу данных
  */
-async function logClick(ip, userAgent, source, site, articleId, type, country) {
+async function logClick(ip, userAgent, source, campaign, site, articleId, type, country) {
   try {
     await mainPool.query(
-      `INSERT INTO clicks (ip, country, user_agent, source, site, article_id, type, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [ip, country, userAgent, source, site, articleId, type]
+      `INSERT INTO clicks (ip, country, user_agent, source, campaign, site, article_id, type, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [ip, country, userAgent, source, campaign, site, articleId, type]
     );
   } catch (error) {
     console.error('Error logging click:', error);
@@ -128,22 +143,29 @@ module.exports = router;
 /**
  * Преобразует UTM конфиг в строку параметров
  */
-function buildUtmParams(utmConfig) {
-  if (!utmConfig) return '';
+function buildUtmParams(utmConfig, articleId, campaign) {
+  const params = new URLSearchParams();
 
   if (typeof utmConfig === 'string') {
-    return utmConfig.replace(/^\?/, '');
-  }
-
-  if (typeof utmConfig === 'object') {
-    const params = new URLSearchParams();
+    new URLSearchParams(utmConfig.replace(/^\?/, '')).forEach((value, key) => {
+      params.append(key, value);
+    });
+  } else if (typeof utmConfig === 'object' && utmConfig) {
     Object.entries(utmConfig).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         params.append(key, String(value));
       }
     });
-    return params.toString();
   }
 
-  return '';
+  if (campaign) {
+    params.set('utm_campaign', campaign);
+    if (!params.has('utm_content')) {
+      params.set('utm_content', articleId);
+    }
+  } else {
+    params.set('utm_campaign', articleId);
+  }
+
+  return params.toString();
 }

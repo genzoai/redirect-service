@@ -34,6 +34,7 @@ Universal Redirect Service поддерживает разные методы п
   limit: 5                     (опционально: количество постов, по умолчанию 5, all = все посты)
   countries_limit: 5           (опционально: количество стран, по умолчанию 5, all = все страны, 0 = не показывать)
   source: fb                   (опционально: фильтр по источнику, например fb/yt/tg)
+  campaign: spring_sale        (опционально: фильтр по кампании внутри источника)
 
   Или для кастомного периода:
   site: realtruetales
@@ -185,13 +186,19 @@ curl -H "Authorization: Bearer TOKEN" \
   "https://go.genzo.ai/api/stats?site=realtruetales&period=week&source=fb"
 ```
 
-### 10. Статистика со ВСЕМИ странами
+### 11. Статистика по конкретной кампании
+```bash
+curl -H "Authorization: Bearer TOKEN" \
+  "https://go.genzo.ai/api/stats?site=realtruetales&period=week&source=fb&campaign=spring_sale"
+```
+
+### 12. Статистика со ВСЕМИ странами
 ```bash
 curl -H "Authorization: Bearer TOKEN" \
   "https://go.genzo.ai/api/stats?site=realtruetales&period=month&countries_limit=all"
 ```
 
-### 11. Статистика БЕЗ данных по странам
+### 13. Статистика БЕЗ данных по странам
 ```bash
 curl -H "Authorization: Bearer TOKEN" \
   "https://go.genzo.ai/api/stats?site=realtruetales&period=week&countries_limit=0"
@@ -207,6 +214,7 @@ curl -H "Authorization: Bearer TOKEN" \
   "data": {
     "site": "realtruetales",
     "period": "yesterday",
+    "campaign": "spring_sale",
     "date_range": {
       "start": "2026-01-10 00:00:00",
       "end": "2026-01-10 23:59:59"
@@ -286,6 +294,15 @@ curl -H "Authorization: Bearer TOKEN" \
         "previews": 10,
         "total": 35
       }
+    ],
+    "campaigns": [
+      {
+        "campaign": "spring_sale",
+        "source": "fb",
+        "clicks": 25,
+        "previews": 10,
+        "total": 35
+      }
     ]
   }
 }
@@ -304,6 +321,7 @@ curl -H "Authorization: Bearer TOKEN" \
   - `top_countries` - **НОВОЕ:** топ стран для этой статьи (если `countries_limit` != 0)
 - `top_articles_previews` - топ статей по preview ботов
 - `sources` - разбивка по источникам трафика (click + preview)
+- `campaigns` - разбивка по кампаниям (click + preview)
 
 **Примечание:** Поля `top_countries` появляются только если параметр `countries_limit` не равен `0` (по умолчанию топ-5).
 

@@ -180,6 +180,7 @@ https://go.yourdomain.com/go/{source}/{site}/{articleId}
 
 **Параметры:**
 - `{source}` - источник трафика (fb, ig, tg, email и т.д.)
+- `{campaign}` - опциональная кампания внутри источника (например, `spring_sale`)
 - `{site}` - ID сайта из sites.json
 - `{articleId}` - slug/ID статьи
 
@@ -190,6 +191,12 @@ https://go.yourdomain.com/go/{source}/{site}/{articleId}
 https://go.yourdomain.com/go/fb/mywordpress/my-article-slug
 ```
 Редирект → `https://myblog.com/my-article-slug/?utm_source=facebook&utm_medium=social&utm_campaign=my-article-slug`
+
+#### Facebook campaign → WordPress сайт
+```
+https://go.yourdomain.com/go/fb/spring_sale/mywordpress/my-article-slug
+```
+Редирект → `https://myblog.com/my-article-slug/?utm_source=facebook&utm_medium=social&utm_campaign=spring_sale&utm_content=my-article-slug`
 
 #### Instagram → любой сайт
 ```
@@ -228,6 +235,7 @@ GET /api/stats
 | `limit` | Количество постов (5, 10, all) | Нет (default: 5) |
 | `countries_limit` | Количество стран (5, 10, all, 0) | Нет (default: 5) |
 | `source` | Фильтр по источнику (fb, yt, tg, ...) | Нет |
+| `campaign` | Фильтр по кампании внутри источника | Нет |
 
 ### Примеры запросов
 

@@ -8,7 +8,7 @@ const { authenticate } = require('../middleware/auth');
  * GET /api/stats?site=realtruetales&period=week
  */
 router.get('/', authenticate, async (req, res) => {
-  const { site, period, start_date, end_date, limit, countries_limit, source } = req.query;
+  const { site, period, start_date, end_date, limit, countries_limit, source, campaign } = req.query;
 
   if (!site) {
     return res.status(400).json({
@@ -47,9 +47,15 @@ router.get('/', authenticate, async (req, res) => {
     }
 
     const sourceFilter = source ? String(source) : null;
+    const campaignFilter = campaign ? String(campaign) : null;
     const sourceCondition = sourceFilter ? ' AND source = ?' : '';
+    const campaignCondition = campaignFilter ? ' AND campaign = ?' : '';
     const baseParams = [site, dateRange.start, dateRange.end];
-    const paramsWithSource = sourceFilter ? [...baseParams, sourceFilter] : baseParams;
+    const paramsWithFilters = [
+      ...baseParams,
+      ...(sourceFilter ? [sourceFilter] : []),
+      ...(campaignFilter ? [campaignFilter] : [])
+    ];
 
     // Получаем общее количество переходов (clicks)
     const [totalClicks] = await mainPool.query(
@@ -58,8 +64,8 @@ router.get('/', authenticate, async (req, res) => {
        WHERE site = ?
          AND type = 'click'
          AND created_at >= ?
-         AND created_at <= ?${sourceCondition}`,
-      paramsWithSource
+         AND created_at <= ?${sourceCondition}${campaignCondition}`,
+      paramsWithFilters
     );
 
     // Получаем общее количество preview (боты)
@@ -69,8 +75,8 @@ router.get('/', authenticate, async (req, res) => {
        WHERE site = ?
          AND type = 'preview'
          AND created_at >= ?
-         AND created_at <= ?${sourceCondition}`,
-      paramsWithSource
+         AND created_at <= ?${sourceCondition}${campaignCondition}`,
+      paramsWithFilters
     );
 
     // Получаем статьи по кликам
@@ -83,11 +89,12 @@ router.get('/', authenticate, async (req, res) => {
          AND created_at >= ?
          AND created_at <= ?
          ${sourceFilter ? 'AND source = ?' : ''}
+         ${campaignFilter ? 'AND campaign = ?' : ''}
        GROUP BY article_id
        ORDER BY clicks DESC
        ${articlesLimit ? `LIMIT ${articlesLimit}` : ''}`;
 
-    const [topArticles] = await mainPool.query(clicksQuery, paramsWithSource);
+    const [topArticles] = await mainPool.query(clicksQuery, paramsWithFilters);
 
     // Получаем статьи по preview (боты)
     const previewsQuery = `SELECT
@@ -99,11 +106,12 @@ router.get('/', authenticate, async (req, res) => {
          AND created_at >= ?
          AND created_at <= ?
          ${sourceFilter ? 'AND source = ?' : ''}
+         ${campaignFilter ? 'AND campaign = ?' : ''}
        GROUP BY article_id
        ORDER BY previews DESC
        ${articlesLimit ? `LIMIT ${articlesLimit}` : ''}`;
 
-    const [topPreviewArticles] = await mainPool.query(previewsQuery, paramsWithSource);
+    const [topPreviewArticles] = await mainPool.query(previewsQuery, paramsWithFilters);
 
     // Получаем статистику по странам (если нужно)
     let topCountries = [];
@@ -121,11 +129,12 @@ router.get('/', authenticate, async (req, res) => {
           AND created_at <= ?
           AND country IS NOT NULL
           ${sourceFilter ? 'AND source = ?' : ''}
+          ${campaignFilter ? 'AND campaign = ?' : ''}
         GROUP BY country
         ORDER BY clicks DESC
         ${countriesLimit ? `LIMIT ${countriesLimit}` : ''}`;
 
-      const [countriesData] = await mainPool.query(countriesQuery, paramsWithSource);
+      const [countriesData] = await mainPool.query(countriesQuery, paramsWithFilters);
 
       // Вычисляем процент для каждой страны
       const totalClicksCount = totalClicks[0].total;
@@ -151,15 +160,17 @@ router.get('/', authenticate, async (req, res) => {
             AND created_at <= ?
             AND country IS NOT NULL
             ${sourceFilter ? 'AND source = ?' : ''}
+            ${campaignFilter ? 'AND campaign = ?' : ''}
             AND article_id IN (${placeholders})
           GROUP BY article_id, country
           ORDER BY article_id, clicks DESC`;
 
         const [articleCountriesData] = await mainPool.query(
           articleCountriesQuery,
-          sourceFilter
-            ? [site, dateRange.start, dateRange.end, sourceFilter, ...articleIds]
-            : [site, dateRange.start, dateRange.end, ...articleIds]
+          [
+            ...paramsWithFilters,
+            ...articleIds
+          ]
         );
 
         // Группируем по article_id и берем топ N стран для каждой статьи
@@ -216,6 +227,7 @@ router.get('/', authenticate, async (req, res) => {
       site,
       period: period || 'custom',
       source: sourceFilter || undefined,
+      campaign: campaignFilter || undefined,
       date_range: {
         start: dateRange.start,
         end: dateRange.end
@@ -242,11 +254,40 @@ router.get('/', authenticate, async (req, res) => {
       WHERE site = ?
         AND created_at >= ?
         AND created_at <= ?
+        ${campaignFilter ? 'AND campaign = ?' : ''}
       GROUP BY source
       ORDER BY total DESC`;
 
-    const [sourcesData] = await mainPool.query(sourcesQuery, baseParams);
+    const [sourcesData] = await mainPool.query(
+      sourcesQuery,
+      campaignFilter ? [...baseParams, campaignFilter] : baseParams
+    );
     responseData.sources = sourcesData.map(row => ({
+      source: row.source,
+      clicks: row.clicks,
+      previews: row.previews,
+      total: row.total
+    }));
+
+    const campaignsQuery = `SELECT
+        campaign,
+        source,
+        SUM(CASE WHEN type = 'click' THEN 1 ELSE 0 END) AS clicks,
+        SUM(CASE WHEN type = 'preview' THEN 1 ELSE 0 END) AS previews,
+        COUNT(*) AS total
+      FROM clicks
+      WHERE site = ?
+        AND created_at >= ?
+        AND created_at <= ?
+        AND campaign IS NOT NULL
+        ${sourceFilter ? 'AND source = ?' : ''}
+        ${campaignFilter ? 'AND campaign = ?' : ''}
+      GROUP BY campaign, source
+      ORDER BY total DESC`;
+
+    const [campaignsData] = await mainPool.query(campaignsQuery, paramsWithFilters);
+    responseData.campaigns = campaignsData.map(row => ({
+      campaign: row.campaign,
       source: row.source,
       clicks: row.clicks,
       previews: row.previews,
