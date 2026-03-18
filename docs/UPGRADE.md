@@ -13,8 +13,9 @@ sudo bash scripts/update.sh
 ```
 
 This will:
-1. Check current version
-2. Download latest release from GitHub
+1. Detect update mode automatically
+2. If repo was installed from git: `fetch/pull` the latest branch commit
+3. Otherwise: download latest GitHub release archive
 3. Create backup
 4. Stop service
 5. Update files (preserving config)
@@ -37,6 +38,12 @@ sudo bash scripts/update.sh
 
 ```bash
 sudo bash scripts/update.sh --version v1.2.0
+```
+
+### Update from Git Branch
+
+```bash
+sudo bash scripts/update.sh --branch main
 ```
 
 ### Force Update (Reinstall Current Version)

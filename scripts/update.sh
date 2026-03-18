@@ -28,11 +28,16 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_PATH="$BACKUP_DIR/backup_$TIMESTAMP"
 SERVICE_NAME="${SERVICE_NAME:-redirect-service}"
 HEALTH_ENDPOINT="http://localhost:${PORT:-3077}/health"
+DEFAULT_BRANCH="main"
 
 # Flags
 SKIP_BACKUP=false
 FORCE_UPDATE=false
 TARGET_VERSION=""
+TARGET_BRANCH=""
+UPDATE_MODE="auto"
+CURRENT_VERSION_DISPLAY=""
+LATEST_VERSION_DISPLAY=""
 
 ###############################################################################
 # Functions
@@ -83,6 +88,14 @@ parse_args() {
                 TARGET_VERSION="$2"
                 shift 2
                 ;;
+            --branch)
+                TARGET_BRANCH="$2"
+                shift 2
+                ;;
+            --release)
+                UPDATE_MODE="release"
+                shift
+                ;;
             -h|--help)
                 show_help
                 exit 0
@@ -104,6 +117,8 @@ show_help() {
     echo "  --skip-backup    Skip backup creation"
     echo "  --force          Force update even if already on latest version"
     echo "  --version VER    Update to specific version (e.g., v1.2.0)"
+    echo "  --branch NAME    Update from a git branch (default: current branch or $DEFAULT_BRANCH)"
+    echo "  --release        Force GitHub release/tarball update mode"
     echo "  -h, --help       Show this help message"
     echo ""
     echo "Examples:"
@@ -120,6 +135,24 @@ check_root() {
     fi
 }
 
+# Determine update source
+detect_update_mode() {
+    if [ "$UPDATE_MODE" = "release" ]; then
+        return 0
+    fi
+
+    if [ -n "$TARGET_VERSION" ]; then
+        UPDATE_MODE="release"
+        return 0
+    fi
+
+    if [ -d "$ROOT_DIR/.git" ] && git -C "$ROOT_DIR" remote get-url origin >/dev/null 2>&1; then
+        UPDATE_MODE="git"
+    else
+        UPDATE_MODE="release"
+    fi
+}
+
 # Get current version
 get_current_version() {
     if [ -f "$ROOT_DIR/package.json" ]; then
@@ -129,11 +162,53 @@ get_current_version() {
         CURRENT_VERSION="unknown"
         print_warning "Cannot determine current version"
     fi
+
+    if [ "$UPDATE_MODE" = "git" ]; then
+        CURRENT_BRANCH=$(git -C "$ROOT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "$DEFAULT_BRANCH")
+        CURRENT_COMMIT=$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+        if [ -z "$TARGET_BRANCH" ]; then
+            TARGET_BRANCH="$CURRENT_BRANCH"
+        fi
+
+        CURRENT_VERSION_DISPLAY="$CURRENT_VERSION ($CURRENT_BRANCH@$CURRENT_COMMIT)"
+    else
+        CURRENT_VERSION_DISPLAY="$CURRENT_VERSION"
+    fi
 }
 
 # Get latest version from GitHub
 get_latest_version() {
     print_step "Step 1/9: Checking for Updates"
+
+    if [ "$UPDATE_MODE" = "git" ]; then
+        if [ -z "$TARGET_BRANCH" ]; then
+            TARGET_BRANCH="$DEFAULT_BRANCH"
+        fi
+
+        print_info "Using git update mode"
+        print_info "Fetching origin/$TARGET_BRANCH..."
+
+        git -C "$ROOT_DIR" fetch origin "$TARGET_BRANCH"
+
+        CURRENT_HEAD=$(git -C "$ROOT_DIR" rev-parse HEAD)
+        TARGET_HEAD=$(git -C "$ROOT_DIR" rev-parse "origin/$TARGET_BRANCH")
+        TARGET_COMMIT=$(git -C "$ROOT_DIR" rev-parse --short "origin/$TARGET_BRANCH")
+
+        LATEST_VERSION="$TARGET_HEAD"
+        LATEST_VERSION_DISPLAY="$CURRENT_VERSION ($TARGET_BRANCH@$TARGET_COMMIT)"
+
+        print_info "Current branch: $CURRENT_BRANCH"
+        print_info "Target branch:  $TARGET_BRANCH"
+        print_info "Target commit:  $TARGET_COMMIT"
+
+        if [ "$CURRENT_HEAD" = "$TARGET_HEAD" ] && [ "$FORCE_UPDATE" = false ]; then
+            print_success "Already on latest commit ($TARGET_COMMIT)"
+            echo -e "${YELLOW}Use --force to reinstall current branch state${NC}"
+            exit 0
+        fi
+        return 0
+    fi
 
     if [ -n "$TARGET_VERSION" ]; then
         LATEST_VERSION="$TARGET_VERSION"
@@ -151,6 +226,8 @@ get_latest_version() {
 
         print_success "Latest version: $LATEST_VERSION"
     fi
+
+    LATEST_VERSION_DISPLAY="$LATEST_VERSION"
 
     # Compare versions
     if [ "$CURRENT_VERSION" = "$LATEST_VERSION" ] && [ "$FORCE_UPDATE" = false ]; then
@@ -235,6 +312,21 @@ download_version() {
     fi
 
     print_success "Extracted to: $EXTRACTED_DIR"
+}
+
+# Update from git branch
+update_from_git() {
+    print_step "Step 4/9: Pulling Latest Code"
+
+    cd "$ROOT_DIR"
+
+    print_info "Checking out branch: $TARGET_BRANCH"
+    git checkout "$TARGET_BRANCH"
+
+    print_info "Pulling latest commit from origin/$TARGET_BRANCH"
+    git pull --ff-only origin "$TARGET_BRANCH"
+
+    print_success "Files updated from git branch $TARGET_BRANCH"
 }
 
 # Update files
@@ -399,8 +491,9 @@ print_summary() {
     echo -e "${NC}\n"
 
     echo -e "${BOLD}Update Summary:${NC}"
-    echo "  Previous version: ${YELLOW}$CURRENT_VERSION${NC}"
-    echo "  Current version:  ${GREEN}$LATEST_VERSION${NC}"
+    echo "  Mode:             ${CYAN}$UPDATE_MODE${NC}"
+    echo "  Previous version: ${YELLOW}$CURRENT_VERSION_DISPLAY${NC}"
+    echo "  Current version:  ${GREEN}$LATEST_VERSION_DISPLAY${NC}"
     echo "  Backup location:  $BACKUP_PATH"
     echo ""
 
@@ -435,12 +528,15 @@ main() {
     # Check root
     check_root
 
+    # Detect update strategy
+    detect_update_mode
+
     # Get versions
     get_current_version
     get_latest_version
 
     # Confirm update
-    echo -e "${YELLOW}Update from $CURRENT_VERSION to $LATEST_VERSION?${NC}"
+    echo -e "${YELLOW}Update from $CURRENT_VERSION_DISPLAY to $LATEST_VERSION_DISPLAY?${NC}"
     echo -e "${YELLOW}Continue? [y/N]:${NC}"
     read -r -n 1 REPLY
     echo
@@ -452,8 +548,12 @@ main() {
     # Run update steps
     create_backup
     stop_service
-    download_version
-    update_files
+    if [ "$UPDATE_MODE" = "git" ]; then
+        update_from_git
+    else
+        download_version
+        update_files
+    fi
     update_dependencies
     run_migrations
     start_service
@@ -465,7 +565,7 @@ main() {
     # Print summary
     print_summary
 
-    echo -e "${GREEN}${BOLD}✓ Service successfully updated to $LATEST_VERSION${NC}\n"
+    echo -e "${GREEN}${BOLD}✓ Service successfully updated to $LATEST_VERSION_DISPLAY${NC}\n"
 }
 
 # Trap errors
