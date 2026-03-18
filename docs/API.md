@@ -41,6 +41,44 @@ Universal Redirect Service поддерживает разные методы п
   start_date: 2026-01-01
   end_date: 2026-01-10
 
+## Redirect URL Format
+
+Сервис поддерживает два формата redirect URL:
+
+### Legacy
+
+```text
+https://go.yourdomain.com/go/{source}/{site}/{articleId}
+```
+
+Пример:
+
+```text
+https://go.yourdomain.com/go/fb/realtruetales/t95buwa
+```
+
+Результат:
+- логируется `source = fb`
+- `utm_campaign = articleId`
+
+### Новый формат с campaign
+
+```text
+https://go.yourdomain.com/go/{source}/{campaign}/{site}/{articleId}
+```
+
+Пример:
+
+```text
+https://go.yourdomain.com/go/fb/spring_sale/realtruetales/t95buwa
+```
+
+Результат:
+- логируется `source = fb`
+- логируется `campaign = spring_sale`
+- `utm_campaign = spring_sale`
+- `utm_content = articleId`
+
 ## Типы периодов
 
 ### Скользящие периоды (от момента запроса)
@@ -214,6 +252,7 @@ curl -H "Authorization: Bearer TOKEN" \
   "data": {
     "site": "realtruetales",
     "period": "yesterday",
+    "source": "fb",
     "campaign": "spring_sale",
     "date_range": {
       "start": "2026-01-10 00:00:00",
@@ -313,6 +352,8 @@ curl -H "Authorization: Bearer TOKEN" \
 - `total_clicks` - количество переходов людей (тип `click`)
 - `total_previews` - количество preview ботов Facebook/Telegram (тип `preview`)
 - `articles_count` - количество статей в ответе
+- `source` - фильтр по источнику, если был передан в запросе
+- `campaign` - фильтр по кампании, если был передан в запросе
 - `top_countries` - **НОВОЕ:** топ стран для всего сайта (если `countries_limit` != 0)
   - `country` - ISO код страны (ES, UA, PL и т.д.)
   - `clicks` - количество кликов из этой страны
@@ -340,11 +381,15 @@ curl -H "Authorization: Bearer TOKEN" \
 4. **Query Parameters:**
    - `site`: `{{ $json.site }}` или `realtruetales`
    - `period`: `yesterday` или другой период
+   - `source`: `fb` (опционально)
+   - `campaign`: `spring_sale` (опционально)
 
 **Пример динамических параметров:**
 ```
 site: {{ $json.site }}
 period: last_week
+source: fb
+campaign: spring_sale
 ```
 
 ---
@@ -360,5 +405,5 @@ period: last_week
 
 ---
 
-**Дата создания:** 2026-01-11
-**Версия API:** 1.0
+**Дата обновления:** 2026-03-18
+**Версия API:** 1.1
