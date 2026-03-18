@@ -323,8 +323,11 @@ update_from_git() {
     print_info "Checking out branch: $TARGET_BRANCH"
     git checkout "$TARGET_BRANCH"
 
-    print_info "Pulling latest commit from origin/$TARGET_BRANCH"
-    git pull --ff-only origin "$TARGET_BRANCH"
+    print_info "Fetching latest commit from origin/$TARGET_BRANCH"
+    git fetch origin "$TARGET_BRANCH"
+
+    print_info "Resetting working tree to origin/$TARGET_BRANCH"
+    git reset --hard "origin/$TARGET_BRANCH"
 
     print_success "Files updated from git branch $TARGET_BRANCH"
 }
