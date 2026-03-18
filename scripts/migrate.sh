@@ -127,6 +127,28 @@ is_bootstrap_migration() {
     return 1
 }
 
+# Some legacy installs may have schema changes applied manually before
+# schema_migrations tracking existed. Detect these cases and mark them as applied.
+migration_already_effective() {
+    local migration_name="$1"
+
+    case "$migration_name" in
+        "04-add-country-field.sql")
+            COLUMN_EXISTS=$(mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USER}" -p"${DB_PASSWORD}" "${DB_NAME}" \
+                -sse "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='${DB_NAME}' AND TABLE_NAME='clicks' AND COLUMN_NAME='country';" 2>/dev/null || echo "0")
+            [ "$COLUMN_EXISTS" -gt "0" ]
+            ;;
+        "05-add-campaign-field.sql")
+            COLUMN_EXISTS=$(mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USER}" -p"${DB_PASSWORD}" "${DB_NAME}" \
+                -sse "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='${DB_NAME}' AND TABLE_NAME='clicks' AND COLUMN_NAME='campaign';" 2>/dev/null || echo "0")
+            [ "$COLUMN_EXISTS" -gt "0" ]
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 # Mark migration as applied
 mark_migration_applied() {
     local migration_name="$1"
@@ -170,6 +192,13 @@ run_migrations() {
         # Check if already applied
         if is_migration_applied "$filename"; then
             echo -e "  ${YELLOW}⊘${NC} $filename (already applied)"
+            SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+            continue
+        fi
+
+        if migration_already_effective "$filename"; then
+            echo -e "  ${YELLOW}⊘${NC} $filename (schema already updated)"
+            mark_migration_applied "$filename"
             SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
             continue
         fi
