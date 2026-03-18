@@ -258,7 +258,11 @@ create_backup() {
     # Remove unnecessary files from backup
     rm -rf "$BACKUP_PATH/node_modules"
     rm -rf "$BACKUP_PATH/logs"
-    rm -rf "$BACKUP_PATH/.git"
+
+    # Preserve git metadata for git-mode rollbacks.
+    if [ "$UPDATE_MODE" = "release" ]; then
+        rm -rf "$BACKUP_PATH/.git"
+    fi
 
     print_success "Backup created: $BACKUP_PATH"
 
