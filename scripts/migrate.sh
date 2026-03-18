@@ -163,14 +163,14 @@ run_migrations() {
 
         if is_bootstrap_migration "$filename"; then
             echo -e "  ${YELLOW}⊘${NC} $filename (bootstrap only)"
-            ((SKIPPED_COUNT++))
+            SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
             continue
         fi
 
         # Check if already applied
         if is_migration_applied "$filename"; then
             echo -e "  ${YELLOW}⊘${NC} $filename (already applied)"
-            ((SKIPPED_COUNT++))
+            SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
             continue
         fi
 
@@ -182,11 +182,11 @@ run_migrations() {
 
             # Mark as applied
             mark_migration_applied "$filename"
-            ((APPLIED_COUNT++))
+            APPLIED_COUNT=$((APPLIED_COUNT + 1))
         else
             echo -e "${RED}✗${NC}"
             print_error "Migration failed: $filename"
-            ((FAILED_COUNT++))
+            FAILED_COUNT=$((FAILED_COUNT + 1))
 
             # Ask if should continue
             echo -e "${YELLOW}Continue with remaining migrations? [y/N]:${NC}"
