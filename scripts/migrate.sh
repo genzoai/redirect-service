@@ -23,6 +23,7 @@ SQL_DIR="$ROOT_DIR/sql"
 
 # Migration tracking
 MIGRATIONS_TABLE="schema_migrations"
+BOOTSTRAP_MIGRATIONS="01-create-database.sql 02-create-tables.sql 03-create-readonly-user.sql"
 
 ###############################################################################
 # Functions
@@ -113,6 +114,19 @@ is_migration_applied() {
     [ "$COUNT" -gt "0" ]
 }
 
+# Bootstrap SQL files are for initial installation, not runtime upgrades.
+is_bootstrap_migration() {
+    local migration_name="$1"
+
+    for bootstrap_file in $BOOTSTRAP_MIGRATIONS; do
+        if [ "$migration_name" = "$bootstrap_file" ]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 # Mark migration as applied
 mark_migration_applied() {
     local migration_name="$1"
@@ -146,6 +160,12 @@ run_migrations() {
     # Run each migration
     while IFS= read -r sql_file; do
         filename=$(basename "$sql_file")
+
+        if is_bootstrap_migration "$filename"; then
+            echo -e "  ${YELLOW}⊘${NC} $filename (bootstrap only)"
+            ((SKIPPED_COUNT++))
+            continue
+        fi
 
         # Check if already applied
         if is_migration_applied "$filename"; then

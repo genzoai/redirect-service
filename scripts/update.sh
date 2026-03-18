@@ -20,10 +20,11 @@ NC='\033[0m' # No Color
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+ROOT_PARENT_DIR="$(cd "$ROOT_DIR/.." && pwd)"
 
 # Configuration
 GITHUB_REPO="genzoai/redirect-service"
-BACKUP_DIR="$ROOT_DIR/../redirect-service-backups"
+BACKUP_DIR="$ROOT_PARENT_DIR/redirect-service-backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_PATH="$BACKUP_DIR/backup_$TIMESTAMP"
 SERVICE_NAME="${SERVICE_NAME:-redirect-service}"
