@@ -160,6 +160,11 @@ start_date=2026-01-01&end_date=2026-01-10
 - `top_countries` - топ стран для всего сайта (с процентами)
 - `top_countries` внутри каждой статьи - топ стран для этой статьи
 
+**Разбивка по кампаниям внутри статьи:**
+- `campaigns` внутри каждой статьи - список кампаний, по которым у этой статьи были данные
+- поле возвращается даже если для статьи найдена только одна кампания
+- если у статьи нет данных с `campaign`, поле `campaigns` не добавляется
+
 ---
 
 ## Примеры запросов
@@ -288,6 +293,22 @@ curl -H "Authorization: Bearer TOKEN" \
         "article_id": "t95buwa",
         "clicks": 25,
         "url": "https://realtruetales.com/t95buwa/",
+        "campaigns": [
+          {
+            "campaign": "spring_sale",
+            "source": "fb",
+            "clicks": 20,
+            "previews": 8,
+            "total": 28
+          },
+          {
+            "campaign": "retargeting_test",
+            "source": "fb",
+            "clicks": 5,
+            "previews": 0,
+            "total": 5
+          }
+        ],
         "top_countries": [
           {
             "country": "ES",
@@ -360,6 +381,7 @@ curl -H "Authorization: Bearer TOKEN" \
   - `percentage` - процент от общего числа кликов
 - `top_articles` - топ статей по переходам людей
   - `top_countries` - **НОВОЕ:** топ стран для этой статьи (если `countries_limit` != 0)
+  - `campaigns` - разбивка по кампаниям для этой статьи; возвращается даже если кампания только одна
 - `top_articles_previews` - топ статей по preview ботов
 - `sources` - разбивка по источникам трафика (click + preview)
 - `campaigns` - разбивка по кампаниям (click + preview)

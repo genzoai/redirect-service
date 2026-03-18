@@ -116,6 +116,7 @@ router.get('/', authenticate, async (req, res) => {
     // Получаем статистику по странам (если нужно)
     let topCountries = [];
     let articleCountries = {};
+    let articleCampaigns = {};
 
     if (countriesLimit !== 0) {
       // Топ стран для всего сайта
@@ -190,6 +191,53 @@ router.get('/', authenticate, async (req, res) => {
       }
     }
 
+    // Получаем разбивку по кампаниям для каждой статьи.
+    // Поле добавляется без ломки текущего API: старые поля сохраняются.
+    if (topArticles.length > 0) {
+      const articleIds = topArticles.map(a => a.article_id);
+      const placeholders = articleIds.map(() => '?').join(',');
+
+      const articleCampaignsQuery = `SELECT
+          article_id,
+          campaign,
+          source,
+          SUM(CASE WHEN type = 'click' THEN 1 ELSE 0 END) AS clicks,
+          SUM(CASE WHEN type = 'preview' THEN 1 ELSE 0 END) AS previews,
+          COUNT(*) AS total
+        FROM clicks
+        WHERE site = ?
+          AND created_at >= ?
+          AND created_at <= ?
+          AND campaign IS NOT NULL
+          ${sourceFilter ? 'AND source = ?' : ''}
+          ${campaignFilter ? 'AND campaign = ?' : ''}
+          AND article_id IN (${placeholders})
+        GROUP BY article_id, campaign, source
+        ORDER BY article_id, total DESC, campaign ASC`;
+
+      const [articleCampaignsData] = await mainPool.query(
+        articleCampaignsQuery,
+        [
+          ...paramsWithFilters,
+          ...articleIds
+        ]
+      );
+
+      articleCampaignsData.forEach(row => {
+        if (!articleCampaigns[row.article_id]) {
+          articleCampaigns[row.article_id] = [];
+        }
+
+        articleCampaigns[row.article_id].push({
+          campaign: row.campaign,
+          source: row.source,
+          clicks: row.clicks,
+          previews: row.previews,
+          total: row.total
+        });
+      });
+    }
+
     // Формируем ссылки на статьи
     const sites = require('../../config/sites.json');
     const siteConfig = sites[site];
@@ -211,6 +259,10 @@ router.get('/', authenticate, async (req, res) => {
       // Добавляем топ стран для статьи, если включена статистика по странам
       if (countriesLimit !== 0 && articleCountries[article.article_id]) {
         articleData.top_countries = articleCountries[article.article_id];
+      }
+
+      if (articleCampaigns[article.article_id]) {
+        articleData.campaigns = articleCampaigns[article.article_id];
       }
 
       return articleData;
